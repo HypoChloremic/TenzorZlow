@@ -62,7 +62,8 @@ print("[GLOBAL] Starting")
 X = tf.placeholder(tf.float32, [None, 2])
 
 # similarly, we will only need two weights, and one node?
-W = tf.Variable(tf.zeros([2,1]))
+W  = tf.Variable(tf.zeros([2,1]))
+W2 = tf.Variable(tf.zeros([1,1]))
 
 # One bias value for the one node. 
 B = tf.Variable(tf.zeros([1]))
@@ -72,7 +73,11 @@ B = tf.Variable(tf.zeros([1]))
 # a graph, which we then are going to drive with the Session.run 
 # method later. The model will thus become a vector containing
 # the activations of the neuron. 
-model  = tf.nn.softmax(tf.matmul(X,W) + B)
+# model  = tf.nn.softmax(tf.matmul(X,W) + B)
+first_model  = tf.matmul(X,W) + B
+model 		 = tf.sigmoid(W2 * first_model)
+print(first_model)
+
 # In this case we only have two labels, for each cluster. 
 # I is this one that has been causing all of the issues. 
 labels = tf.placeholder(tf.float32, [None, 1]) 
@@ -84,7 +89,11 @@ error = -tf.reduce_sum(labels*tf.log(model))
 # I am unsure whether the 0.003 value represents the amount with
 # which we are going to change the weights and the biases. Also,
 # does it know automatically what weights it is going to change?
-optimizer  = tf.train.GradientDescentOptimizer(0.003)
+# When we got NaN as a result after testing the network, is associeated
+# with the step sizes. When we reduced the step size, we started acquiring
+# answers that were more probable. It is however worth noting that it for some
+# obvious testing cases, the network misbehaves. 
+optimizer  = tf.train.GradientDescentOptimizer(0.00000001)
 # Furthermore, the GradientDescentOptimizer has a minimze method
 # associated with it, which we would like to feed the error
 # function into, which in effect tells it the cost function it 
@@ -98,20 +107,19 @@ sess = tf.Session()
 # to tell Session how the graph looks like. 
 sess.run(init)
 for i in range(1000):
-	train_data = {X: x[(i*100):((i+1)*100)], labels: y[(i*100):((i+1)*100)]}
-	
+
+	train_data = {X: x[(i*100):((i+1)*100)], labels: y[(i*100):((i+1)*100)]}	
 	# Aight, so it seems that we are running the last operation
 	# of the graph in order to drive the entire thing, which
 	# makes sense. 
 	sess.run(train_step, feed_dict=train_data)
 
-
-test_vals = np.array([[3,2000]])
+# We would like to test the network, see if it would produce
+# the correct answer, which it definitely should.
+test_vals = np.array([[20,100]])
 print(f"Sess: {sess.run(model, {X:test_vals})}")
-
 plt.scatter(x_val, y_val, c=y)
 plt.plot(x_val, m*x_val+b, "-")
 plt.show()
 
 print("[GLOBAL] Finished")
-
