@@ -6,30 +6,43 @@ is not the best, however, it is a start to taming the
 tensorflow beast. 
 (cc) 2017 Ali Rassolie
 """
+####  IMPORTS  ####
+
 print("[GLOBAL] importing")
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+import randomNum as rn
 
 print("[GLOBAL] Setting os environ TF_CPP_MIN_LOG_LEVEL to '2' ")
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+####  EndImports ####
 
-# the function
-def f(x):
-	return x
+####  Function   ####
+m = 1
+b = 0
 
-x = [[np.random.randint(10), np.random.randint(10)] for i in range(60000)]
+def f(x, b=b, m=m):
+	return m*x + b
+
+initProcess = rn.randomNum()
+
+
+# x = [[np.random.randint(10), (random.random())] for i in range(60000)]
+x = initProcess.ranLinVal(offset=1000)
 y = []
+x_val, y_val = initProcess.get_x_y()
+x_val, y_val = np.array(x_val), np.array(y_val)
 
 for i in x: 
-	if i[1] > f(i[0]):
-		y.append(1)
-	else: 
-		y.append(0) 
+	if i[1] > f(i[0]):	y.append([1.0])
+	else:				y.append([0.0]) 
 
 x = np.array(x, dtype="float32")
 y = np.array(y, dtype="float32")
+
+
 
 # print(f"Shape of x: {x[:100].shape}")
 
@@ -47,20 +60,22 @@ dimensions of that input, which with consideration are just 2 values.
 """
 print("[GLOBAL] Starting")
 X = tf.placeholder(tf.float32, [None, 2])
+
 # similarly, we will only need two weights, and one node?
 W = tf.Variable(tf.zeros([2,1]))
+
 # One bias value for the one node. 
-b = tf.Variable(tf.zeros([1]))
+B = tf.Variable(tf.zeros([1]))
 
 # This model is in effect the operation we are going to perform
 # in our node of interest. Note that we are in effect constructing
 # a graph, which we then are going to drive with the Session.run 
 # method later. The model will thus become a vector containing
 # the activations of the neuron. 
-model  = tf.nn.softmax(tf.matmul(X,W) + b)
+model  = tf.nn.softmax(tf.matmul(X,W) + B)
 # In this case we only have two labels, for each cluster. 
 # I is this one that has been causing all of the issues. 
-labels = tf.placeholder(tf.float32, [None]) 
+labels = tf.placeholder(tf.float32, [None, 1]) 
 
 # The error function
 error = -tf.reduce_sum(labels*tf.log(model))
@@ -90,4 +105,13 @@ for i in range(1000):
 	# makes sense. 
 	sess.run(train_step, feed_dict=train_data)
 
+
+test_vals = np.array([[3,2000]])
+print(f"Sess: {sess.run(model, {X:test_vals})}")
+
+plt.scatter(x_val, y_val, c=y)
+plt.plot(x_val, m*x_val+b, "-")
+plt.show()
+
 print("[GLOBAL] Finished")
+

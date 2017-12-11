@@ -109,3 +109,14 @@ plt.plot(train_X[0, :], fopt[0, :], 'k-', label='Fitted Line')
 plt.axis('equal')
 plt.legend(loc='lower right')
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
